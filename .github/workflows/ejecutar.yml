@@ -1,6 +1,6 @@
 # .github/workflows/ejecutar.yml
 
-name: CI para Node.js
+name: CI de Node.js
 
 on:
   push:
@@ -12,30 +12,33 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    # 'strategy' permite ejecutar el mismo job con diferentes configuraciones.
+    # Aquí, ejecutaremos las pruebas en dos versiones diferentes de Node.js.
     strategy:
       matrix:
-        # Ejecuta el trabajo con diferentes versiones de Node.js
         node-version: [18.x, 20.x]
 
-          - name: Usar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          # La línea 'cache' ha sido eliminada
+    steps:
+      # 1. Clonar el repositorio
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
 
-      # 2. Configurar el entorno de Node.js
-      - name: Usar Node.js ${{ matrix.node-version }}
+      # 2. Configurar el entorno de Node.js para la versión especificada en la matriz
+      - name: Configurar Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          # Opcional: cache para acelerar la instalación de dependencias
+          # Activa la caché para 'npm' para acelerar la instalación de dependencias en futuras ejecuciones
           cache: 'npm'
 
-      # 3. Instalar dependencias del proyecto
+      # 3. Instalar las dependencias del proyecto (usando el archivo package-lock.json)
       - name: Instalar dependencias
-        run: npm install
+        run: npm ci
 
-      # 4. Ejecutar pruebas (asumiendo que tienes un script "test" en tu package.json)
+      # 4. Ejecutar el script de build (si existe en tu package.json)
+      - name: Compilar el proyecto
+        run: npm run build --if-present
+
+      # 5. Ejecutar las pruebas (asumiendo que tienes un script "test" en tu package.json)
       - name: Ejecutar pruebas
         run: npm test
-
